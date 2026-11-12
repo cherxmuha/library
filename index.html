@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Escape the Library: Light Sanrio</title>
+  <style>
+    :root {
+      --bg: #fff0f5;
+      --card-bg: #ffffff;
+      --accent: #ffb6c1;
+      --accent-hover: #ff94a8;
+      --text: #4a4a4a;
+      --text-muted: #888888;
+      --border: #f0c0d0;
+      --study-color: #7b68ee;
+      --rest-color: #2e8b57;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 420px;
+      background: var(--card-bg);
+      border: 2px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 1.4rem;
+      color: #d87093;
+      margin-bottom: 8px;
+    }
+
+    p.subtitle {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+    }
+
+    .screen {
+      display: none;
+    }
+
+    .screen.active {
+      display: block;
+    }
+
+    /* Input Screen */
+    .input-group {
+      margin-bottom: 16px;
+    }
+
+    input[type="number"] {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      font-size: 1.1rem;
+      text-align: center;
+      outline: none;
+    }
+
+    input[type="number"]:focus {
+      border-color: var(--accent);
+    }
+
+    .btn {
+      width: 100%;
+      padding: 12px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .btn:hover {
+      background: var(--accent-hover);
+    }
+
+    .quick-btns {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .quick-btn {
+      padding: 8px;
+      background: #fdf0f5;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+
+    /* Doors Screen */
+    .doors-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin: 20px 0;
+    }
+
+    .door-card {
+      background: #fff9fb;
+      border: 2px dashed var(--border);
+      border-radius: 12px;
+      padding: 16px 8px;
+      cursor: pointer;
+    }
+
+    .door-card:hover {
+      background: #fff0f5;
+      border-color: var(--accent);
+    }
+
+    .door-icon {
+      font-size: 2rem;
+      margin-bottom: 8px;
+    }
+
+    .door-title {
+      font-size: 0.8rem;
+      font-weight: bold;
+    }
+
+    /* Timer Screen */
+    .timer-display {
+      font-size: 3rem;
+      font-weight: bold;
+      margin: 20px 0;
+      color: var(--text);
+    }
+
+    .timer-type {
+      font-weight: bold;
+      margin-bottom: 8px;
+      font-size: 1.1rem;
+    }
+
+    .type-study { color: var(--study-color); }
+    .type-rest { color: var(--rest-color); }
+
+    /* Performance Widget */
+    #ram-widget {
+      position: fixed;
+      bottom: 8px;
+      right: 8px;
+      background: rgba(0, 0, 0, 0.75);
+      color: #00ffcc;
+      font-family: monospace;
+      font-size: 0.75rem;
+      padding: 4px 8px;
+      border-radius: 4px;
+      z-index: 9999;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <!-- SCREEN 1: SETUP -->
+    <div id="screen-setup" class="screen active">
+      <h1>🎀 Побег из библиотеки</h1>
+      <p class="subtitle">Сколько минут учебы планируем на сегодня?</p>
+      
+      <div class="quick-btns">
+        <button class="quick-btn" onclick="setMinutes(30)">30м</button>
+        <button class="quick-btn" onclick="setMinutes(60)">60м</button>
+        <button class="quick-btn" onclick="setMinutes(90)">90м</button>
+        <button class="quick-btn" onclick="setMinutes(120)">120м</button>
+      </div>
+
+      <div class="input-group">
+        <input type="number" id="initial-minutes" min="5" max="600" placeholder="Минуты (напр. 60)">
+      </div>
+
+      <button class="btn" onclick="startSession()">Начать путь</button>
+    </div>
+
+    <!-- SCREEN 2: DOORS -->
+    <div id="screen-doors" class="screen">
+      <h1>🚪 Выберите дверь</h1>
+      <p class="subtitle">Осталось в запасе: <b id="remaining-time-display">0</b> мин</p>
+      
+      <div class="doors-grid">
+        <div class="door-card" onclick="selectDoor(0)">
+          <div class="door-icon">🚪</div>
+          <div class="door-title">Дверь 1</div>
+        </div>
+        <div class="door-card" onclick="selectDoor(1)">
+          <div class="door-icon">🚪</div>
+          <div class="door-title">Дверь 2</div>
+        </div>
+        <div class="door-card" onclick="selectDoor(2)">
+          <div class="door-icon">🚪</div>
+          <div class="door-title">Дверь 3</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCREEN 3: TIMER -->
+    <div id="screen-timer" class="screen">
+      <div id="timer-type-label" class="timer-type">Учеба</div>
+      <div class="timer-display" id="timer-countdown">00:00</div>
+      <button id="timer-action-btn" class="btn" style="display:none;" onclick="finishPhase()">Продолжить</button>
+    </div>
+
+    <!-- SCREEN 4: SUMMARY -->
+    <div id="screen-summary" class="screen">
+      <h1>🎉 Вы вышли из библиотеки!</h1>
+      <p class="subtitle" style="margin-top:12px;">Итоговая статистика:</p>
+      <div style="text-align:left; margin: 16px 0; font-size: 0.95rem; line-height: 1.6;">
+        <div>🎯 Всего времени израсходовано: <b id="stat-total">0</b> мин</div>
+        <div>📖 Чистая учеба: <b id="stat-study">0</b> мин</div>
+        <div>☕ Время отдыха: <b id="stat-rest">0</b> мин</div>
+        <div>🚪 Открыто дверей: <b id="stat-doors">0</b></div>
+      </div>
+      <button class="btn" onclick="resetApp()">Начать заново</button>
+    </div>
+  </div>
+
+  <div id="ram-widget">RAM: -- MB</div>
+
+  <script>
+    // State Variables
+    let totalPlannedMinutes = 0;
+    let remainingMinutes = 0;
+    let totalStudyTime = 0;
+    let totalRestTime = 0;
+    let doorsOpened = 0;
+
+    let currentPhase = null;
+    let timerInterval = null;
+    let phaseSecondsLeft = 0;
+
+    let generatedDoors = [];
+
+    function showScreen(id) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+    }
+
+    function setMinutes(val) {
+      document.getElementById('initial-minutes').value = val;
+    }
+
+    function startSession() {
+      const input = document.getElementById('initial-minutes');
+      const val = parseInt(input.value, 10);
+      if (!val || val <= 0) return;
+
+      totalPlannedMinutes = val;
+      remainingMinutes = val;
+      totalStudyTime = 0;
+      totalRestTime = 0;
+      doorsOpened = 0;
+
+      updateDoorsScreen();
+    }
+
+    function generateDoorOptions() {
+      const studyOptions = [10, 20, 30, 60].filter(m => m <= remainingMinutes);
+      const restOptions = [5, 10, 15].filter(m => m <= remainingMinutes);
+
+      // Force study if no rest options fit
+      const canHaveRest = restOptions.length > 0 && Math.random() > 0.4;
+
+      const doors = [];
+      for (let i = 0; i < 3; i++) {
+        let isRest = canHaveRest && (i === 0) && Math.random() > 0.5;
+        
+        if (isRest && restOptions.length > 0) {
+          const duration = restOptions[Math.floor(Math.random() * restOptions.length)];
+          doors.push({ type: 'rest', duration });
+        } else {
+          let duration;
+          if (studyOptions.length > 0) {
+            duration = studyOptions[Math.floor(Math.random() * studyOptions.length)];
+          } else {
+            duration = remainingMinutes;
+          }
+          doors.push({ type: 'study', duration });
+        }
+      }
+
+      // Shuffle
+      return doors.sort(() => Math.random() - 0.5);
+    }
+
+    function updateDoorsScreen() {
+      if (remainingMinutes <= 0) {
+        showSummary();
+        return;
+      }
+
+      document.getElementById('remaining-time-display').innerText = remainingMinutes;
+      generatedDoors = generateDoorOptions();
+      showScreen('screen-doors');
+    }
+
+    function selectDoor(index) {
+      doorsOpened++;
+      currentPhase = generatedDoors[index];
+      
+      // Subtract time for both study and rest
+      remainingMinutes -= currentPhase.duration;
+
+      if (currentPhase.type === 'study') {
+        totalStudyTime += currentPhase.duration;
+      } else {
+        totalRestTime += currentPhase.duration;
+      }
+
+      startTimer(currentPhase.duration * 60);
+    }
+
+    function startTimer(seconds) {
+      phaseSecondsLeft = seconds;
+      
+      const label = document.getElementById('timer-type-label');
+      const btn = document.getElementById('timer-action-btn');
+      btn.style.display = 'none';
+
+      if (currentPhase.type === 'study') {
+        label.innerText = `📖 Учеба (${currentPhase.duration} мин)`;
+        label.className = 'timer-type type-study';
+      } else {
+        label.innerText = `☕ Отдых (${currentPhase.duration} мин)`;
+        label.className = 'timer-type type-rest';
+      }
+
+      showScreen('screen-timer');
+      updateTimerDisplay();
+
+      if (timerInterval) clearInterval(timerInterval);
+
+      timerInterval = setInterval(() => {
+        phaseSecondsLeft--;
+        updateTimerDisplay();
+
+        if (phaseSecondsLeft <= 0) {
+          clearInterval(timerInterval);
+          timerInterval = null;
+          btn.style.display = 'block';
+        }
+      }, 1000);
+    }
+
+    function updateTimerDisplay() {
+      const m = Math.floor(phaseSecondsLeft / 60).toString().padStart(2, '0');
+      const s = (phaseSecondsLeft % 60).toString().padStart(2, '0');
+      document.getElementById('timer-countdown').innerText = `${m}:${s}`;
+    }
+
+    function finishPhase() {
+      updateDoorsScreen();
+    }
+
+    function showSummary() {
+      document.getElementById('stat-total').innerText = totalPlannedMinutes;
+      document.getElementById('stat-study').innerText = totalStudyTime;
+      document.getElementById('stat-rest').innerText = totalRestTime;
+      document.getElementById('stat-doors').innerText = doorsOpened;
+      showScreen('screen-summary');
+    }
+
+    function resetApp() {
+      if (timerInterval) clearInterval(timerInterval);
+      document.getElementById('initial-minutes').value = '';
+      showScreen('screen-setup');
+    }
+
+    // Lightweight Memory Monitor
+    const ramWidget = document.getElementById('ram-widget');
+    setInterval(() => {
+      if (window.performance && window.performance.memory) {
+        const usedMB = (performance.memory.usedJSHeapSize / (1024 * 1024)).toFixed(1);
+        ramWidget.innerText = `RAM: ${usedMB} MB`;
+      } else {
+        const nodes = document.getElementsByTagName('*').length;
+        ramWidget.innerText = `DOM: ${nodes} nodes`;
+      }
+    }, 2000);
+  </script>
+</body>
+</html>
